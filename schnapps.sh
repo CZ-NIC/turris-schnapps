@@ -329,7 +329,7 @@ rollback() {
     echo "CREATED=\"`date "+%Y-%m-%d %H:%M:%S %z"`\"" >> "$TMP_MNT_DIR"/$NUMBER.info
     if btrfs subvolume snapshot "$TMP_MNT_DIR"/@$ROLL_TO "$TMP_MNT_DIR"/@ > /dev/null; then
         echo "Current state saved as snapshot number $NUMBER"
-        echo "Rolled back to snapshot $ROLL_TO"
+        echo "Rolled back to snapshot $ROLL_TO. Reboot your router to apply changes."
         if [ -d /etc/schnapps/rollback.d ]; then
             for i in /etc/schnapps/rollback.d/*; do
                 [ \! -x "$i" ] || "$i" "$TMP_MNT_DIR"/@
