@@ -687,16 +687,15 @@ remote_mount() {
             [ -n "`which sshfs`" ] || die "sshfs is not available"
             sshfs "$FINAL_REMOTE_URL" "$TMP_RMT_MNT_DIR" || die "Can't access remote filesystem"
             ;;
-        cifs://*)
-        smb://*)
-            FINAL_REMOTE_URL="$(echo "$REMOTE_URL" | sed -e 's|^[a-z]*://|//|')"
+        smb://*|cifs://*)
+            local final_remote_url="$(echo "$REMOTE_URL" | sed -e 's|^[a-z]*://|//|')"
             local opts=""
             if [ -n "$REMOTE_USER" ]; then
                 opts="user=$REMOTE_USER,password=$REMOTE_PASS"
             else
                 opts="guest"
             fi
-            mount.cifs "$FINAL_REMOTE_URL" -o "$opts" "$TMP_RMT_MNT_DIR" || die "Can't access remote filesystem"
+            mount.cifs "$final_remote_url" -o "$opts" "$TMP_RMT_MNT_DIR" || die "Can't access remote filesystem"
             ;;
         *) die "Invalid URL" ;;
     esac
@@ -717,8 +716,7 @@ remote_unmount() {
         ssh://*)
             fusermount -uz "$TMP_RMT_MNT_DIR" 2> /dev/null
             ;;
-        cifs://*)
-        smb://*)
+        smb://*|cifs://*)
             umount -fl "$TMP_RMT_MNT_DIR" 2> /dev/null
             ;;
         *) die "Invalid URL" ;;
