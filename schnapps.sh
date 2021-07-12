@@ -29,22 +29,24 @@ KEEP_MAX=""
 REMOTE_URL=""
 REMOTE_MOUNTED=""
 REMOTE_PATH=""
+REMOTE_KEEP="0"
 GPG_PASS=""
 ROOT_DEV="$(btrfs fi show / | sed -n 's|.*\(/dev/[^[:blank:]]*\)$|\1|p' | head -n 1)"
 VERSION="@VERSION@"
 
 # Read configuration
 if [ -n "`which uci 2> /dev/null`" ]; then
-    KEEP_MAX_SINGLE="`  uci get schnapps.keep.max_single   2> /dev/null`"
-    KEEP_MAX_TIME="`    uci get schnapps.keep.max_time     2> /dev/null`"
-    KEEP_MAX_UPDATER="` uci get schnapps.keep.max_updater  2> /dev/null`"
-    KEEP_MAX_ROLLBACK="`uci get schnapps.keep.max_rollback 2> /dev/null`"
-    REMOTE_URL="`       uci get schnapps.remote.url        2> /dev/null`"
-    REMOTE_PATH="`      uci get schnapps.remote.path       2> /dev/null`"
-    REMOTE_USER="`      uci get schnapps.remote.user       2> /dev/null`"
-    REMOTE_PASS="`      uci get schnapps.remote.password   2> /dev/null`"
-    SYNC_TYPES="`       uci get schnapps.remote.sync_types 2> /dev/null`"
-    GPG_PASS="`         uci get schnapps.encrypt.pass      2> /dev/null`"
+    KEEP_MAX_SINGLE="`  uci get schnapps.keep.max_single      2> /dev/null`"
+    KEEP_MAX_TIME="`    uci get schnapps.keep.max_time        2> /dev/null`"
+    KEEP_MAX_UPDATER="` uci get schnapps.keep.max_updater     2> /dev/null`"
+    KEEP_MAX_ROLLBACK="`uci get schnapps.keep.max_rollback    2> /dev/null`"
+    REMOTE_URL="`       uci get schnapps.remote.url           2> /dev/null`"
+    REMOTE_PATH="`      uci get schnapps.remote.path          2> /dev/null`"
+    REMOTE_USER="`      uci get schnapps.remote.user          2> /dev/null`"
+    REMOTE_PASS="`      uci get schnapps.remote.password      2> /dev/null`"
+    REMOTE_KEEP="`      uci get schnapps.remote.keep_foreever 2> /dev/null`"
+    SYNC_TYPES="`       uci get schnapps.remote.sync_types    2> /dev/null`"
+    GPG_PASS="`         uci get schnapps.encrypt.pass         2> /dev/null`"
 fi
 
 [ \! -f /etc/schnapps/config ] || . /etc/schnapps/config
@@ -739,11 +741,13 @@ sync_snps() {
         fi
         RM_NUMS="$(echo "$RM_NUMS" | grep -v "^$i\$")"
     done
-    for i in $RM_NUMS; do
-        rm -f "$TMP_RMT_MNT_DIR"/"$REMOTE_PATH"/"$BOARD-medkit-$HOSTNAME-$i.info" \
-              "$TMP_RMT_MNT_DIR"/"$REMOTE_PATH"/"$BOARD-medkit-$HOSTNAME-$i.tar.gz" \
-              "$TMP_RMT_MNT_DIR"/"$REMOTE_PATH"/"$BOARD-medkit-$HOSTNAME-$i.tar.gz.pgp"
-    done
+    if [ "$REMOTE_KEEP" != 1 ]; then
+        for i in $RM_NUMS; do
+            rm -f "$TMP_RMT_MNT_DIR"/"$REMOTE_PATH"/"$BOARD-medkit-$HOSTNAME-$i.info" \
+                  "$TMP_RMT_MNT_DIR"/"$REMOTE_PATH"/"$BOARD-medkit-$HOSTNAME-$i.tar.gz" \
+                  "$TMP_RMT_MNT_DIR"/"$REMOTE_PATH"/"$BOARD-medkit-$HOSTNAME-$i.tar.gz.pgp"
+        done
+    fi
 }
 
 remote_list() {
